@@ -228,7 +228,21 @@ setup_bridge_networking() {
     fi
     NAMESERVER=( `grep nameserver /etc/resolv.conf | grep -v "#" | cut -f2 -d ' '` )
     NAMESERVERS=`echo ${NAMESERVER[*]} | sed "s/ /,/"`
+    cat > /netconf.cinit << NETCONF
+#cloud-config
+network-interfaces: |
+  auto lo
+  iface lo inet loopback
 
+  iface eth0 inet static
+    address $IP
+    netmask $NETMASK
+    gateway $GATEWAY
+    dns-nameservers $NAMESERVERS
+    dns-search rancher.internal
+NETCONF
+    cloud-localds /net.img /netconf.cinit
+    KVM_BLK_OPTS=$KVM_BLK_OPTS" -drive file=/net.img"
     cat > /etc/dnsmasq.conf << EOF
 user=root
 dhcp-range=$IP,$IP
