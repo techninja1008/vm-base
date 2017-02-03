@@ -189,7 +189,7 @@ KVM_BLK_OPTS=$KVM_BLK_OPTS$extra_kvm_blk_opts
 # 2. Remove IP from eth0, save eth0 MAC, give eth0 a random MAC
 
 IFACE=eth0
-BRIDGE_IFACE=br0
+BRIDGE_IFACE=vm0
 
 cidr2mask() {
   local i mask=""
@@ -292,6 +292,14 @@ EOF
     echo allow $BRIDGE_IFACE >  /etc/qemu/bridge.conf
 }
 
+setup_host_networking() {
+	echo allow $BRIDGE_IFACE >  /etc/qemu/bridge.conf
+	# Generate random new MAC address
+    hexchars="0123456789ABCDEF"
+    end=$( for i in {1..8} ; do echo -n ${hexchars:$(( $RANDOM % 16 )):1} ; done | sed -e 's/\(..\)/:\1/g' )
+    MAC=`echo 06:FE$end`
+}
+
 # need to wait until network is ready
 ISO=`generate_cloud_drive`
 if [[ $ISO ]]
@@ -299,11 +307,13 @@ then
 	KVM_BLK_OPTS=$KVM_BLK_OPTS" -cdrom $ISO"
 fi
 
-if [ "$RANCHER_NETWORK" = "true" ] && [ -e /var/run/rancher/tap.sock ]; then
-    setup_tap
-else
-    setup_bridge_networking
-fi
+setup_host_networking
+
+#if [ "$RANCHER_NETWORK" = "true" ] && [ -e /var/run/rancher/tap.sock ]; then
+#    setup_tap
+#else
+#    setup_bridge_networking
+#fi
 
 
 # If /vm does not exist, we still proceed with running KVM. We just
