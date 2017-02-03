@@ -131,7 +131,7 @@ generate_cloud_drive()
 : ${KVM_RAW_BLK_OPTS:="-drive file=\$KVM_IMAGE,if=none,id=drive-disk0,format=raw \
 -device virtio-blk-pci,scsi=off,drive=drive-disk0,id=virtio-disk0,bootindex=1"}
 : ${KVM_NET_OPTS:="-netdev bridge,br=\$BRIDGE_IFACE,id=net0 \
--device virtio-net-pci,netdev=net0,mac=\$MAC"}
+-device e1000,netdev=net0,mac=\$MAC"}
 
 # For debugging
 if [ "$1" = "bash" ]; then
